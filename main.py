@@ -38,6 +38,7 @@ else:
 
 k = 2
 d = 2
+w = 3
 delta = 0.01
 lambda_ = 1
 if debug:
@@ -59,7 +60,7 @@ if __name__ == '__main__':
         option = 'solo_processing'
         sigma_noise = 1
         figure_name = ('ucb_convergence_verification_sigma' + str(sigma_noise)).replace('.', 'dot')
-        policies = [SW_UCB(d, sigma_noise, k, delta, lambda_)]
+        policies = [SW_UCB(d, w, sigma_noise, k, delta, lambda_)]
         avg_regret = run_experiment(num_mc, t_saved, option)
         plot_regret(figure_name, line_name, avg_regret, t_saved, figure_type, jupyter_notebook)
     else:

@@ -31,14 +31,14 @@ class Environment(object):
             arm_expected_reward = arm_feature.dot(self.theta)
             self.expected_rewards[i] = arm_expected_reward
             self.arms.append(Arm(arm_id, arm_feature, arm_expected_reward))
-        print('self.t:', self.t)
-        print('self.theta:', self.theta)
-        print('self.expected_rewards:', self.expected_rewards)
-        for arm in self.arms:
-            print('arm.arm_id：', arm.arm_id)
-            print('arm.arm_feature：', arm.arm_feature)
-            print('arm.arm_expected_reward：', arm.arm_expected_reward)
-        print()
+        # print('self.t:', self.t)
+        # print('self.theta:', self.theta)
+        # print('self.expected_rewards:', self.expected_rewards)
+        # for arm in self.arms:
+        #     print('arm.arm_id：', arm.arm_id)
+        #     print('arm.arm_feature：', arm.arm_feature)
+        #     print('arm.arm_expected_reward：', arm.arm_expected_reward)
+        # print()
     def update(self):
         self.t += 1
         sin_molecule = 5 * self.variation_budget * np.pi * self.t
@@ -53,14 +53,14 @@ class Environment(object):
             arm_expected_reward = arm_feature.dot(self.theta)
             self.expected_rewards[i] = arm_expected_reward
             self.arms[arm_id].arm_expected_reward = arm_expected_reward
-        print('self.t:', self.t)
-        print('self.theta:', self.theta)
-        print('self.expected_rewards:', self.expected_rewards)
-        for arm in self.arms:
-            print('arm.arm_id：', arm.arm_id)
-            print('arm.arm_feature：', arm.arm_feature)
-            print('arm.arm_expected_reward：', arm.arm_expected_reward)
-        print()
+        # print('self.t:', self.t)
+        # print('self.theta:', self.theta)
+        # print('self.expected_rewards:', self.expected_rewards)
+        # for arm in self.arms:
+        #     print('arm.arm_id：', arm.arm_id)
+        #     print('arm.arm_feature：', arm.arm_feature)
+        #     print('arm.arm_expected_reward：', arm.arm_expected_reward)
+        # print()
     def play(self, choice):
         # print('arm_id:', self.arms[choice].arm_id)
         # print('arm_expected_reward:', self.arms[choice].arm_expected_reward)

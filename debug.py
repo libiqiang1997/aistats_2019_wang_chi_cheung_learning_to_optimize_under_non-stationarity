@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-num = 0.5 + 0.3 * np.sin(5 * 1 * np.pi * 1 / 6)
-num1 = 0.5 + 0.3 * np.sin(np.pi + 5 * 1 * np.pi * 1 / 6)
+x = np.array([1, 2, 3])
 
+print(x)
 
-print(num)
-print(num1)
+y = np.delete(x, 0)
+
+print(y)

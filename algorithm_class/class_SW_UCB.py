@@ -2,8 +2,9 @@ import numpy as np
 
 
 class SW_UCB(object):
-    def __init__(self, d, sigma_noise, k, delta, lambda_):
+    def __init__(self, d, w, sigma_noise, k, delta, lambda_):
         self.d = d
+        self.w = w
         self.sigma_noise = sigma_noise
         self.k = k
         self.delta = delta
@@ -16,9 +17,12 @@ class SW_UCB(object):
         self.matrix = self.lambda_ * np.identity(self.d)
         # # self.b = np.zeros(self.d)
         self.b = np.zeros(self.d)
-        # self.total_rewards = np.zeros(self.k)
-        # self.chosen_counts = np.zeros(self.k)
-        # self.ucbs = np.ones(self.k) * float('inf')
+        self.feature_window = []
+        self.reward_window = np.zeros(self.w)
+        self.reward_cursor = 0
+        print('self.t:', self.t)
+        print('self.feature_window:', self.feature_window)
+        print('self.reward_window:', self.reward_window)
 
     def select_arm(self, arms):
         self.hat_theta = np.dot(np.linalg.inv(self.matrix), self.b)
@@ -69,6 +73,25 @@ class SW_UCB(object):
         self.b += b_addition
         # self.chosen_counts[choice] += 1
         # self.total_rewards[choice] += round_reward
+        self.feature_window.append(selected_arm_feature)
+        if self.t <= self.w:
+            self.reward_window[self.t - 1] = round_reward
+        elif self.t > self.w:
+            deducted_arm_feature = self.feature_window.pop(0)
+            deducted_reward = self.reward_window[0]
+            self.reward_window = np.roll(self.reward_window, -1)
+            self.reward_window[len(self.reward_window) - 1] = round_reward
+            matrix_deduction = np.outer(deducted_arm_feature, deducted_arm_feature)
+            self.matrix -= matrix_deduction
+            b_deduction = deducted_reward * deducted_arm_feature
+            self.b -= b_deduction
+        # if self.t <= self.w:
+        #     self.feature_window.append(selected_arm_feature)
+        #     self.reward_window[self.reward_cursor] = round_reward
+        #     self.reward_cursor += 1
+        print('self.t:', self.t)
+        print('self.feature_window:', self.feature_window)
+        print('self.reward_window:', self.reward_window)
         self.t += 1
         # print('self.b:', self.b)
 
