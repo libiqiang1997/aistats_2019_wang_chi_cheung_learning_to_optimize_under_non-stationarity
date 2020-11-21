@@ -39,14 +39,18 @@ if not os.path.exists(mat_save_path):
     os.makedirs(mat_save_path)
 
 
-def plot_regret(figure_name, line_name, line_regret, t_saved, figure_type, jupyter_notebook):
-    if figure_type == 'xy':
-        plot_figure(line_name, line_regret, t_saved)
-    elif figure_type == 'logxlogy':
-        plot_loglog_figure(line_name, line_regret, t_saved)
+def plot_regret(figure_name, line_name, line_regret, t_saved, jupyter_notebook):
+    plot_figure(line_name, line_regret, t_saved)
     if not jupyter_notebook:
         save_figure(figure_name)
         save_data(figure_name, line_name, line_regret)
+    t_saved_loglog = [(i + 1) * 30000 - 1 for i in range(8)]
+    line_regret_loglog = line_regret[t_saved_loglog]
+    figure_name_loglog = figure_name + '_loglog'
+    plot_loglog_figure(line_name, line_regret_loglog, t_saved_loglog)
+    if not jupyter_notebook:
+        save_figure(figure_name_loglog)
+        save_data(figure_name_loglog, line_name, line_regret_loglog)
 
 
 def modify_regret_figure(figure_name, data_name, jupyter_notebook):
@@ -61,8 +65,8 @@ def plot_figure(data_name, line_regret, t_saved):
     plt.plot(t_saved, line_regret, label=data_name, color=colors[3])
     # plt.xscale('log', nonpositive='clip')
     # plt.yscale('log', nonpositive='clip')
-    for i in range(len(t_saved)):
-        plt.scatter(t_saved[i], line_regret[i], color=colors[3])
+    # for i in range(len(t_saved)):
+    #     plt.scatter(t_saved[i], line_regret[i], color=colors[3])
     # plt.xlim((1, 10**6))
     # plt.xlim((10**3, t_saved[len(t_saved) - 1] * 1.2))
     # plt.ylim((10 ** 3, line_regret[len(t_saved) - 1] * 1.2))
@@ -71,9 +75,9 @@ def plot_figure(data_name, line_regret, t_saved):
     plt.legend()
 
 
-def plot_loglog_figure(data_name, line_regret, t_saved):
+def plot_loglog_figure(line_name, line_regret, t_saved):
     fig = plt.figure() # default (6.4, 4.8) 640x480
-    plt.plot(t_saved, line_regret, label=data_name, color=colors[3])
+    plt.plot(t_saved, line_regret, label=line_name, color=colors[3])
     plt.xscale('log', nonpositive='clip')
     plt.yscale('log', nonpositive='clip')
     # plt.xlim((1, t_saved[len(t_saved) - 1]))

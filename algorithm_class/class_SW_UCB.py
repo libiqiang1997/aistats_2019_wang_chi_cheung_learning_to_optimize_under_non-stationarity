@@ -2,13 +2,15 @@ import numpy as np
 
 
 class SW_UCB(object):
-    def __init__(self, d, w, sigma_noise, k, delta, lambda_):
+    def __init__(self, d, w, k, sigma_noise, delta, lambda_, action_norm_bound, theta_norm_bound):
         self.d = d
         self.w = w
-        self.sigma_noise = sigma_noise
         self.k = k
+        self.sigma_noise = sigma_noise
         self.delta = delta
         self.lambda_ = lambda_
+        self.action_norm_bound = action_norm_bound
+        self.theta_norm_bound = theta_norm_bound
 
         # self.re_init()
 
@@ -20,9 +22,9 @@ class SW_UCB(object):
         self.feature_window = []
         self.reward_window = np.zeros(self.w)
         self.reward_cursor = 0
-        print('self.t:', self.t)
-        print('self.feature_window:', self.feature_window)
-        print('self.reward_window:', self.reward_window)
+        # print('self.t:', self.t)
+        # print('self.feature_window:', self.feature_window)
+        # print('self.reward_window:', self.reward_window)
 
     def select_arm(self, arms):
         self.hat_theta = np.dot(np.linalg.inv(self.matrix), self.b)
@@ -31,21 +33,27 @@ class SW_UCB(object):
         for arm in arms:
             # estimated_reward = self.total_rewards[arm.arm_id] / self.chosen_counts[arm.arm_id]
             estimated_reward = np.dot(arm.arm_feature, self.hat_theta)
-            alpha = self.sigma_noise * np.sqrt(2 * np.log(1 / self.delta)) + self.lambda_ * np.sqrt(self.d)
-            # alpha = self.sigma_noise * np.sqrt(2 / self.chosen_counts[arm.arm_id] * np.log(2 * self.k * self.t / self.delta))
+
+            denominator_term = 1 + self.w * self.action_norm_bound ** 2 / self.lambda_
+            log_term = np.log(denominator_term / self.delta)
+            sqrt_term = np.sqrt(self.d * log_term)
+            beta_term1 = self.sigma_noise * sqrt_term
+            beta_term2 = np.sqrt(self.lambda_) * self.theta_norm_bound
+            beta = beta_term1 + beta_term2
+            # beta = self.sigma_noise * np.sqrt(2 / self.chosen_counts[arm.arm_id] * np.log(2 * self.k * self.t / self.delta))
             inv_matrix = np.linalg.inv(self.matrix)
-            matrix_norm_temp = np.dot(arm.arm_feature, inv_matrix)
-            matrix_norm_temp1 = np.dot(matrix_norm_temp, arm.arm_feature)
-            matrix_norm = np.sqrt(matrix_norm_temp1)
-            ucbs[arm.arm_id] = estimated_reward + alpha * matrix_norm
+            matrix_norm_term1 = np.dot(arm.arm_feature, inv_matrix)
+            matrix_norm_term2 = np.dot(matrix_norm_term1, arm.arm_feature)
+            matrix_norm = np.sqrt(matrix_norm_term2)
+            ucbs[arm.arm_id] = estimated_reward + beta * matrix_norm
             # print('arm_id:', arm.arm_id)
             # print('arm_feature:', arm.arm_feature)
             # print('arm_expected_reward:', arm.arm_expected_reward)
             # print('estimated_reward:', estimated_reward)
-            # print('alpha:', alpha)
+            # print('beta:', beta)
             # print('inv_matrix:', inv_matrix)
-            # print('matrix_norm_temp:', matrix_norm_temp)
-            # print('matrix_norm_temp1:', matrix_norm_temp1)
+            # print('matrix_norm_term1:', matrix_norm_term1)
+            # print('matrix_norm_term2:', matrix_norm_term2)
             # print('matrix_norm:', matrix_norm)
             # print('ucbs:', ucbs)
         # print('ucbs:', ucbs)
@@ -89,12 +97,14 @@ class SW_UCB(object):
         #     self.feature_window.append(selected_arm_feature)
         #     self.reward_window[self.reward_cursor] = round_reward
         #     self.reward_cursor += 1
-        print('self.t:', self.t)
-        print('self.feature_window:', self.feature_window)
-        print('self.reward_window:', self.reward_window)
+        # print('self.t:', self.t)
+        # print('self.feature_window:', self.feature_window)
+        # print('self.reward_window:', self.reward_window)
         self.t += 1
         # print('self.b:', self.b)
 
+    def __str__(self):
+        return 'SW-UCB'
 
 # k = 10
 # # d = 5

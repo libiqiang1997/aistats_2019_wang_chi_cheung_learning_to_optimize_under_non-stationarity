@@ -60,13 +60,15 @@ class Simulator(object):
             policy = self.policies[0]
             policy.re_init()
             for t in range(time_horizon):
+                self.env.update()
                 choice = policy.select_arm(self.env.arms)
                 selected_expected_reward = self.env.get_expected_reward(choice)
                 selected_expected_rewards[t] = selected_expected_reward
                 optimal_expected_reward = self.env.get_optimal_expected_reward()
                 optimal_expected_rewards[t] = optimal_expected_reward
+                selected_arm_feature = self.env.arms[choice].arm_feature
                 round_reward = self.env.play(choice)
-                policy.update(choice, round_reward)
+                policy.update(selected_arm_feature, round_reward)
             expected_regrets = optimal_expected_rewards - selected_expected_rewards
             cum_regret[n_experiment, :] = np.cumsum(expected_regrets)[t_saved]
         avg_regret = np.mean(cum_regret, 0)
@@ -89,8 +91,7 @@ class Simulator(object):
             threads[i].start()
         for i in range(num_thread):
             threads[i].join()
-        else:
-            avg_regret = np.zeros(len(t_saved))
+        avg_regret = np.zeros(len(t_saved))
         for i in range(num_thread):
             avg_regret += thread_avg_regret_dict[i]
         avg_regret /= num_thread

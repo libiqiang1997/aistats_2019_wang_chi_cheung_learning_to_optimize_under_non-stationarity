@@ -47,6 +47,8 @@ class Environment(object):
         theta_first_term = 0.5 + 0.3 * np.sin(first_sin_term)
         theta_second_term = 0.5 + 0.3 * np.sin(second_sin_term)
         self.theta = np.array([theta_first_term, theta_second_term])
+        # print('theta:', self.theta)
+        # print('norm:', np.linalg.norm(self.theta))
         for i in range(self.k):
             arm_id = i
             arm_feature = np.identity(self.d)[i]

@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-x = np.array([1, 2, 3])
+for i in range(3):
+    print('i:', i)
+else:
+    # x = 2 ** (2/3) * (3 * 10 ** 4) ** (2/3)
+    pass
 
-print(x)
 
-y = np.delete(x, 0)
-
-print(y)
