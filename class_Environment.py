@@ -14,13 +14,21 @@ class Environment(object):
         self.unif_max = 1
         # self.re_init()
 
-    def re_init(self):
+    def init(self):
         # self.expected_rewards = np.random.uniform(self.unif_min, self.unif_max, self.k)
         self.expected_rewards = np.zeros(self.k)
+        self.expected_rewards1 = np.zeros(self.time_horizon)
+        self.expected_rewards2 = np.zeros(self.time_horizon)
         self.t = 0
         sin_molecule = 5 * self.variation_budget * np.pi * self.t
+        # change acutely
         first_sin_term = sin_molecule / self.time_horizon
+        # change gently
+        # first_sin_term = sin_molecule / (3 * self.time_horizon)
+        # change acutely
         second_sin_term = np.pi + sin_molecule / self.time_horizon
+        # change gently
+        # second_sin_term = np.pi + sin_molecule / (3 * self.time_horizon)
         theta_first_term = 0.5 + 0.3 * np.sin(first_sin_term)
         theta_second_term = 0.5 + 0.3 * np.sin(second_sin_term)
         self.theta = np.array([theta_first_term, theta_second_term])
@@ -39,11 +47,22 @@ class Environment(object):
         #     print('arm.arm_feature：', arm.arm_feature)
         #     print('arm.arm_expected_reward：', arm.arm_expected_reward)
         # print()
+
+    def re_init(self):
+        self.t = 0
+
     def update(self):
         self.t += 1
         sin_molecule = 5 * self.variation_budget * np.pi * self.t
+        # change acutely
         first_sin_term = sin_molecule / self.time_horizon
+        # change gently
+        # first_sin_term = sin_molecule / (3 * self.time_horizon)
+        # change acutely
         second_sin_term = np.pi + sin_molecule / self.time_horizon
+        # change gently
+        # second_sin_term = np.pi + sin_molecule / (3 * self.time_horizon)
+
         theta_first_term = 0.5 + 0.3 * np.sin(first_sin_term)
         theta_second_term = 0.5 + 0.3 * np.sin(second_sin_term)
         self.theta = np.array([theta_first_term, theta_second_term])
@@ -55,6 +74,8 @@ class Environment(object):
             arm_expected_reward = arm_feature.dot(self.theta)
             self.expected_rewards[i] = arm_expected_reward
             self.arms[arm_id].arm_expected_reward = arm_expected_reward
+        self.expected_rewards1[self.t - 1] = self.expected_rewards[0]
+        self.expected_rewards2[self.t - 1] = self.expected_rewards[1]
         # print('self.t:', self.t)
         # print('self.theta:', self.theta)
         # print('self.expected_rewards:', self.expected_rewards)
@@ -63,6 +84,7 @@ class Environment(object):
         #     print('arm.arm_feature：', arm.arm_feature)
         #     print('arm.arm_expected_reward：', arm.arm_expected_reward)
         # print()
+
     def play(self, choice):
         # print('arm_id:', self.arms[choice].arm_id)
         # print('arm_expected_reward:', self.arms[choice].arm_expected_reward)

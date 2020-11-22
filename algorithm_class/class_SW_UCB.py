@@ -2,61 +2,52 @@ import numpy as np
 
 
 class SW_UCB(object):
-    def __init__(self, d, w, k, sigma_noise, delta, lambda_, action_norm_bound, theta_norm_bound):
+    def __init__(self, name, d, w, sigma_noise, delta, lambda_, action_norm_bound, theta_norm_bound, color):
+        self.name = name
         self.d = d
         self.w = w
-        self.k = k
         self.sigma_noise = sigma_noise
         self.delta = delta
         self.lambda_ = lambda_
         self.action_norm_bound = action_norm_bound
         self.theta_norm_bound = theta_norm_bound
+        self.color = color
 
         # self.re_init()
 
-    def re_init(self):
+    def init(self):
         self.t = 1
         self.matrix = self.lambda_ * np.identity(self.d)
         # # self.b = np.zeros(self.d)
         self.b = np.zeros(self.d)
         self.feature_window = []
         self.reward_window = np.zeros(self.w)
-        self.reward_cursor = 0
         # print('self.t:', self.t)
         # print('self.feature_window:', self.feature_window)
         # print('self.reward_window:', self.reward_window)
 
     def select_arm(self, arms):
-        self.hat_theta = np.dot(np.linalg.inv(self.matrix), self.b)
-        # print('hat_theta:', self.hat_theta)
-        ucbs = np.zeros(self.k)
-        for arm in arms:
-            # estimated_reward = self.total_rewards[arm.arm_id] / self.chosen_counts[arm.arm_id]
-            estimated_reward = np.dot(arm.arm_feature, self.hat_theta)
+        kt = len(arms)  # available actions at time t
+        ucbs = np.zeros(kt)  # upper-confidence bounds for every action
 
-            denominator_term = 1 + self.w * self.action_norm_bound ** 2 / self.lambda_
-            log_term = np.log(denominator_term / self.delta)
-            sqrt_term = np.sqrt(self.d * log_term)
-            beta_term1 = self.sigma_noise * sqrt_term
-            beta_term2 = np.sqrt(self.lambda_) * self.theta_norm_bound
-            beta = beta_term1 + beta_term2
-            # beta = self.sigma_noise * np.sqrt(2 / self.chosen_counts[arm.arm_id] * np.log(2 * self.k * self.t / self.delta))
-            inv_matrix = np.linalg.inv(self.matrix)
+        hat_theta = np.inner(np.linalg.inv(self.matrix), self.b)
+        # print('hat_theta:', self.hat_theta)
+
+        denominator_term = 1 + self.w * self.action_norm_bound ** 2 / self.lambda_
+        log_term = np.log(denominator_term / self.delta)
+        sqrt_term = np.sqrt(self.d * log_term)
+        beta_term1 = self.sigma_noise * sqrt_term
+        beta_term2 = np.sqrt(self.lambda_) * self.theta_norm_bound
+        beta = beta_term1 + beta_term2
+
+        inv_matrix = np.linalg.inv(self.matrix)
+
+        for (i, arm) in enumerate(arms):
+            estimate_reward = np.inner(arm.arm_feature, hat_theta)
             matrix_norm_term1 = np.dot(arm.arm_feature, inv_matrix)
-            matrix_norm_term2 = np.dot(matrix_norm_term1, arm.arm_feature)
+            matrix_norm_term2 = np.inner(matrix_norm_term1, arm.arm_feature)
             matrix_norm = np.sqrt(matrix_norm_term2)
-            ucbs[arm.arm_id] = estimated_reward + beta * matrix_norm
-            # print('arm_id:', arm.arm_id)
-            # print('arm_feature:', arm.arm_feature)
-            # print('arm_expected_reward:', arm.arm_expected_reward)
-            # print('estimated_reward:', estimated_reward)
-            # print('beta:', beta)
-            # print('inv_matrix:', inv_matrix)
-            # print('matrix_norm_term1:', matrix_norm_term1)
-            # print('matrix_norm_term2:', matrix_norm_term2)
-            # print('matrix_norm:', matrix_norm)
-            # print('ucbs:', ucbs)
-        # print('ucbs:', ucbs)
+            ucbs[i] = estimate_reward + beta * matrix_norm
         mixer = np.random.random(ucbs.size)  # Shuffle to avoid always pulling the same arm when ties
         ucb_indices = list(np.lexsort((mixer, ucbs)))  # Sort the indices
         output = ucb_indices[::-1]  # Reverse list
@@ -93,6 +84,7 @@ class SW_UCB(object):
             self.matrix -= matrix_deduction
             b_deduction = deducted_reward * deducted_arm_feature
             self.b -= b_deduction
+        self.t += 1
         # if self.t <= self.w:
         #     self.feature_window.append(selected_arm_feature)
         #     self.reward_window[self.reward_cursor] = round_reward
@@ -100,11 +92,8 @@ class SW_UCB(object):
         # print('self.t:', self.t)
         # print('self.feature_window:', self.feature_window)
         # print('self.reward_window:', self.reward_window)
-        self.t += 1
         # print('self.b:', self.b)
 
-    def __str__(self):
-        return 'SW-UCB'
 
 # k = 10
 # # d = 5
