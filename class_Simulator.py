@@ -33,7 +33,7 @@ class Simulator(object):
     #     avg_regret = np.mean(cum_regret, 0)
     #     thread_avg_regret_dict[thread_id] = avg_regret
 
-    def multiprocessing_run_each_thread(self, thread_id, thread_num_mc, time_horizon, thread_avg_regret_dict):
+    def multiprocessing_run_each_thread(self, thread_id, thread_num_mc, time_horizon, thread_avg_regret_dict, thread_expected_rewards_dict):
         optimal_expected_rewards = np.zeros(time_horizon)
         selected_expected_rewards = np.zeros(time_horizon)
         cum_regret = np.zeros((thread_num_mc, time_horizon))
@@ -43,7 +43,7 @@ class Simulator(object):
             cum_regret_dict[policy.name] = np.zeros((thread_num_mc, time_horizon))
             avg_regret_dict[policy.name] = np.zeros(time_horizon)
         for n_experiment in range(thread_num_mc):
-            print('thread_id, n_experiment:', thread_id, ',', n_experiment)
+            # print('thread_id, n_experiment:', thread_id, ',', n_experiment)
             self.env.init()
             # policy = self.policies[1]
             for policy in self.policies:
@@ -54,7 +54,7 @@ class Simulator(object):
                     if np.isclose(self.env.expected_rewards[0], self.env.expected_rewards[1]):
                         if policy.name == 'OR-LinUCB':
                             policy.init()
-                            print('t:', t)
+                            # print('t:', t)
                         # print('expected_rewards', self.env.expected_rewards)
                     choice = policy.select_arm(self.env.arms)
                     selected_expected_reward = self.env.get_expected_reward(choice)
@@ -67,16 +67,24 @@ class Simulator(object):
                 expected_regrets = optimal_expected_rewards - selected_expected_rewards
                 cum_regret[n_experiment, :] = np.cumsum(expected_regrets)
                 cum_regret_dict[policy.name][n_experiment, :] = np.cumsum(expected_regrets)
-        avg_regret = np.mean(cum_regret, 0)
+        # avg_regret = np.mean(cum_regret, 0)
         for policy in self.policies:
             avg_regret_dict[policy.name] = np.mean(cum_regret_dict[policy.name], 0)
         # print('avg_regret_dict:', avg_regret_dict)
         # thread_avg_regret_dict[thread_id] = avg_regret
+        if 1 not in thread_expected_rewards_dict.keys():
+            thread_expected_rewards_dict[1] = self.env.expected_rewards1
+        if 2 not in thread_expected_rewards_dict.keys():
+            thread_expected_rewards_dict[2] = self.env.expected_rewards2
+        # print('thread_expected_rewards_dict:', thread_expected_rewards_dict)
         thread_avg_regret_dict[thread_id] = avg_regret_dict
+        # print('thread_avg_regret_dict:', thread_avg_regret_dict)
+        # expected_rewards_dict.append(self.env.expected_rewards2)
 
     def multiprocessing_run(self, num_thread, num_mc, time_horizon):
         manager = mp.Manager()
         thread_avg_regret_dict = manager.dict()
+        thread_expected_rewards_dict = manager.dict()
         thread_border = []
         thread_step = num_mc // num_thread
         for i in range(num_thread):
@@ -87,7 +95,7 @@ class Simulator(object):
             thread_id = i
             thread_num_mc = thread_border[i+1] - thread_border[i]
             threads.append(mp.Process(target=self.multiprocessing_run_each_thread,
-                                      args=(thread_id, thread_num_mc, time_horizon, thread_avg_regret_dict)))
+                                      args=(thread_id, thread_num_mc, time_horizon, thread_avg_regret_dict, thread_expected_rewards_dict)))
             threads[i].start()
         for i in range(num_thread):
             threads[i].join()
@@ -108,7 +116,9 @@ class Simulator(object):
             for i in range(num_thread):
                 avg_regret_dict[policy.name] += thread_avg_regret_dict[i][policy.name]
             avg_regret_dict[policy.name] /= num_thread
-        return avg_regret_dict
+
+        expected_rewards_dict = thread_expected_rewards_dict
+        return avg_regret_dict, expected_rewards_dict
 
         # avg_regret = np.zeros(time_horizon)
         # for i in range(num_thread):

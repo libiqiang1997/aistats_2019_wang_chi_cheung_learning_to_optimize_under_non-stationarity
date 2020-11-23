@@ -3,12 +3,13 @@ from class_Arm import Arm
 
 
 class Environment(object):
-    def __init__(self, k, d, sigma_noise, variation_budget, time_horizon):
+    def __init__(self, k, d, sigma_noise, variation_budget, time_horizon, stationary_degree):
         self.k = k
         self.d = d
         self.sigma_noise = sigma_noise
         self.variation_budget = variation_budget
         self.time_horizon = time_horizon
+        self.stationary_degree = stationary_degree
 
         self.unif_min = -1
         self.unif_max = 1
@@ -21,12 +22,12 @@ class Environment(object):
         self.expected_rewards2 = np.zeros(self.time_horizon)
         self.t = 0
         sin_molecule = 5 * self.variation_budget * np.pi * self.t
-        # change acutely
-        first_sin_term = sin_molecule / self.time_horizon
+        # change frequently
+        first_sin_term = sin_molecule / (self.stationary_degree * self.time_horizon)
         # change gently
         # first_sin_term = sin_molecule / (3 * self.time_horizon)
         # change acutely
-        second_sin_term = np.pi + sin_molecule / self.time_horizon
+        second_sin_term = np.pi + sin_molecule / (self.stationary_degree * self.time_horizon)
         # change gently
         # second_sin_term = np.pi + sin_molecule / (3 * self.time_horizon)
         theta_first_term = 0.5 + 0.3 * np.sin(first_sin_term)
@@ -55,11 +56,11 @@ class Environment(object):
         self.t += 1
         sin_molecule = 5 * self.variation_budget * np.pi * self.t
         # change acutely
-        first_sin_term = sin_molecule / self.time_horizon
+        first_sin_term = sin_molecule / (self.stationary_degree * self.time_horizon)
         # change gently
         # first_sin_term = sin_molecule / (3 * self.time_horizon)
         # change acutely
-        second_sin_term = np.pi + sin_molecule / self.time_horizon
+        second_sin_term = np.pi + sin_molecule / (self.stationary_degree * self.time_horizon)
         # change gently
         # second_sin_term = np.pi + sin_molecule / (3 * self.time_horizon)
 

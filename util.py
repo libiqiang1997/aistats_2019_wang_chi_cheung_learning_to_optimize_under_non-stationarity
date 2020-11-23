@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -95,7 +97,7 @@ def plot_loglog_figure(policies, avg_regret_loglog_dict, t_saved_loglog):
             plt.scatter(t_saved_loglog[i], avg_regret_loglog_dict[policy.name][i], color=policy.color)
     # plt.xlim((1, 10**6))
     plt.xlim((10 ** 2, t_saved_loglog[len(t_saved_loglog) - 1] * 1.2))
-    plt.ylim((1, 5 * 10 ** 3))
+    plt.ylim((1, 5 * 10 ** 5))
     plt.legend()
 
 
@@ -121,7 +123,9 @@ def save_data(figure_name, policies, avg_regret_dict):
 #     return average_regret
 
 
-def plot_expected_rewards(expected_rewards1, expected_rewards2, jupyter_notebook):
+def plot_expected_rewards(expected_rewards_dict, stationary_degree, jupyter_notebook):
+    expected_rewards1 = expected_rewards_dict[1]
+    expected_rewards2 = expected_rewards_dict[2]
     fig = plt.figure()
     time_horizon = len(expected_rewards1)
     time_axies = range(1, time_horizon + 1)
@@ -130,9 +134,18 @@ def plot_expected_rewards(expected_rewards1, expected_rewards2, jupyter_notebook
     plt.xlabel(r'Round $t$')
     plt.ylabel(r'Expected Reward $\mu_t$')
     plt.legend()
-    figure_name = 'expected_rewards'
+    # figure_name = (str(datetime.now().hour).zfill(2) + str(datetime.now().minute).zfill(2) + str(datetime.now().second).zfill(2) \
+    #               + '_expected_rewards' + '_stationary_degree' + str(stationary_degree)).replace('.', 'dot')
+    figure_name = ('stationary_degree' + str(stationary_degree) + '_expected_rewards').replace('.', 'dot')
     if not jupyter_notebook:
         save_figure(figure_name)
+
+def count_change_points(stationary_degree, expected_rewards_dict):
+    count = 0
+    for i in range(len(expected_rewards_dict[1])):
+        if np.isclose(expected_rewards_dict[1][i], expected_rewards_dict[2][i]):
+            count += 1
+    print(stationary_degree, count)
 
 # plot_supplementary_figure()
 # # modify_figure

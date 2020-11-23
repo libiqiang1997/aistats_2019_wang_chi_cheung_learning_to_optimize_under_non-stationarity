@@ -1,6 +1,14 @@
-import matplotlib.pyplot as plt
+from datetime import datetime
+import multiprocessing as mp
 import numpy as np
-a = 1.0
-b = 1.00000001
-print(a == b)
-print(np.isclose(a, b))
+
+if __name__ == '__main__':
+    T = 2.4 * 10 ** 5
+    print('T:', T)
+    ss = [3, 1] + [0.1 * (i + 1) for i in range(5)]
+    for s in ss:
+        length = round(T / 5 * s, 2)
+        print(s)
+        print(length)
+        counnts = T / length
+        print(counnts)
