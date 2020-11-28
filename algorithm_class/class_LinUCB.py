@@ -1,16 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""
-    File description: Implementation of the classic LinUCB model
-"""
-
-# Author: Yoan Russac (yoan.russac@ens.fr)
-# License: BSD (3-clause)
-
-# Importations
 import numpy as np
-from math import log
 from numpy.linalg import pinv
 
 
@@ -41,70 +29,47 @@ class LinUCB(object):
         self.color = color
 
     def init(self):
-        """
-        Re-init function to reinitialize the statistics while keeping the same hyper-parameters
-        """
-        self.t = 1
-        # self.hat_theta = np.zeros(self.d)
+        # initialize calculators for LinUCB
         self.matrix = self.lambda_ * np.identity(self.d)
-        # self.invcov = 1 / self.lambda_ * np.identity(self.d)
         self.b = np.zeros(self.d)
+        self.t = 1
 
     def select_arm(self, arms):
-        """
-        Selecting an arm according to the LinUCB policy
-        param:
-            - arms : list of objects Arm with contextualized features
-        Output:
-        -------
-        chosen_arm : index of the pulled arm
-        """
-        # assert type(arms) == list, 'List of arms as input required'
-        kt = len(arms)  # available actions at time t
-        ucbs = np.zeros(kt)  # upper-confidence bounds for every action
-
+        # calculate fixed parameters first
+        # calculate estimated theta
         hat_theta = np.inner(np.linalg.inv(self.matrix), self.b)
-
-        denominator_term = 1 + self.t * self.action_norm_bound ** 2 / self.lambda_
-        log_term = np.log(denominator_term / self.delta)
+        # calculate beta
+        numerator_term = 1 + self.t * self.action_norm_bound ** 2 / self.lambda_
+        log_term = np.log(numerator_term / self.delta)
         sqrt_term = np.sqrt(self.d * log_term)
         beta_term1 = self.sigma_noise * sqrt_term
         beta_term2 = np.sqrt(self.lambda_) * self.theta_norm_bound
         beta = beta_term1 + beta_term2
-
+        # calculate inverse matrix
         inv_matrix = np.linalg.inv(self.matrix)
 
+        # calculate ucbs
+        kt = len(arms)
+        ucbs = np.zeros(kt)
         for (i, arm) in enumerate(arms):
             estimated_reward = np.inner(arm.arm_feature, hat_theta)
-            matrix_norm_term1 = np.dot(arm.arm_feature, inv_matrix)
-            matrix_norm_term2 = np.inner(matrix_norm_term1, arm.arm_feature)
-            matrix_norm = np.sqrt(matrix_norm_term2)
+            matrix_norm_term_one = np.dot(arm.arm_feature, inv_matrix)
+            matrix_norm_term_two = np.inner(matrix_norm_term_one, arm.arm_feature)
+            matrix_norm = np.sqrt(matrix_norm_term_two)
             ucbs[i] = estimated_reward + beta * matrix_norm
+
+        # select arm
         mixer = np.random.random(ucbs.size)  # Shuffle to avoid always pulling the same arm when ties
         ucb_indices = list(np.lexsort((mixer, ucbs)))  # Sort the indices
         output = ucb_indices[::-1]  # Reverse list
         chosen_arm = output[0]
         return chosen_arm
 
-    def update(self, selected_arm_feature, round_reward):
-        """
-        Updating the main parameters for the model
-        param:
-            - selected_arm_feature: Feature used for updating
-            - round_reward: Reward used for updating
-        Output:
-        -------
-        Nothing, but the class instances are updated
-        """
+    def update(self, chosen_arm, round_reward):
+        # update calculators for LinUCB
+        selected_arm_feature = chosen_arm.arm_feature
         matrix_addition = np.outer(selected_arm_feature, selected_arm_feature)
         self.matrix += matrix_addition
         b_addition = round_reward * selected_arm_feature
         self.b += b_addition
         self.t += 1
-        # self.hat_theta = np.inner(self.invcov, self.b)
-
-
-    # @staticmethod
-    # def id():
-    #     return 'LinUCB'
-

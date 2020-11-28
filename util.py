@@ -140,6 +140,7 @@ def plot_expected_rewards(expected_rewards_dict, stationary_degree, jupyter_note
     if not jupyter_notebook:
         save_figure(figure_name)
 
+
 def count_change_points(stationary_degree, expected_rewards_dict):
     count = 0
     for i in range(len(expected_rewards_dict[1])):
